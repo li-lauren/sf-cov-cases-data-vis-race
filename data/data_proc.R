@@ -49,7 +49,7 @@ dtt[, new_cases_per:=signif(new_cases_per,2)]
 
 # reshape the data.table into (race ~ month) form, with value.var = new_cases_per
 w = dcast(dtt, formula='race~month', value.var='new_cases_per', fill=0)
-w = as.data.table(w)
+#w = as.data.table(w)
 w = rename(w, Race=race)
 
 # pipe final data.table into CSV
