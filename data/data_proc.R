@@ -1,4 +1,6 @@
 library('data.table')
+library('lubridate')
+library('dplyr')
 
 dt = fread(file='Cases_Race_Final.csv')
 
@@ -10,10 +12,10 @@ dt[, last_updated:=NULL]
 # generate a month column based on the given dates
 dt[, date:=as.Date(date)]
 
-dt[, month:=month(date)]
+dt[, month:=sapply(date, FUN=function(x){month(x, label=TRUE, abbr=FALSE)})]
 
 # Filter out January 2020 data, since it is incomplete at this time (1/16)
-dt = dt[month > 1]
+dt = dt[month != 'January']
 
 # Group by month and race
 # dt[, total_new_cases:=sum(new_cases), by=.(month, race)]
@@ -47,8 +49,10 @@ dtt[, new_cases_per:=signif(new_cases_per,2)]
 
 # reshape the data.table into (race ~ month) form, with value.var = new_cases_per
 w = dcast(dtt, formula='race~month', value.var='new_cases_per', fill=0)
+w = as.data.table(w)
+w = rename(w, Race=race)
 
-
-
+# pipe final data.table into CSV
+write.csv(w, "monthly_cases_by_race.csv", row.names=FALSE, quote=FALSE)
 
 
