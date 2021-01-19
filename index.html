@@ -22,27 +22,27 @@
 
         const keys = d3.range(3, 13, 1)
             
-        d3.csv('test_mo_cases_by_race.csv')
-            .then(function(data) {
-                let caseData = []
-                for (row in data) {
-                    caseData.push({
-                        name: data[row]["Race"], 
-                        values: keys.map(key => +data[key]) 
-                    })
-                }
+        Promise.all([d3.csv('test_mo_cases_by_race.csv'), d3.csv('Race-Cats.csv')])
+        .then(function(overallData) {
+            const origCaseData = overallData[0]
+            const categories = overallData[1]
 
-                caseData = caseData.splice(0, caseData.length - 1)
-            
-                d3.csv('Race-Cats.csv')
-                .then(function(categories) {
-                    console.log(categories)
-                    const catByRace = new Map(categories.map(d => [d.Race, d.Group1]));
-
-                    const data = {keys, group: d3.group(caseData, d => catByRace.get(d.name))};
+            let caseData = []
+            for (row in origCaseData) {
+                caseData.push({
+                    name: origCaseData[row]["Race"], 
+                    values: keys.map(key => +origCaseData[key]) 
                 })
+            }
 
-            })
+            caseData = caseData.splice(0, caseData.length - 1)
+
+            const catByRace = new Map(categories.map(d => [d.Race, d.Group1]));
+
+            const data = {keys, group: d3.group(caseData, d => catByRace.get(d.name))};
+        })
+
+        
             
     </script>
 </body>
