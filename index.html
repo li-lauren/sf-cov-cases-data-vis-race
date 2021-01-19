@@ -8,11 +8,17 @@
     <script src="https://d3js.org/d3-array.v2.min.js"></script>
 </head>
 <body>
-    <div id="tree-map"></div>
+    <svg id="tree-map"></svg>
     
     <script>
         const width = 900;
         const height = 900;
+
+        const svg = d3.select('#tree-map')
+            .attr("viewBox", `0 -20 ${width} ${height + 20}`)
+            .attr("font-family", "sans-serif")
+            .attr("font-size", 10)
+            .style("overflow", "visible");
 
         const treemap = d3.treemap()
             .tile(d3.treemapResquarify)
@@ -40,6 +46,12 @@
             const catByRace = new Map(categories.map(d => [d.Race, d.Group1]));
 
             const data = {keys, group: d3.group(caseData, d => catByRace.get(d.name))};
+
+            const root = treemap(d3.hierarchy(data.group)
+                .sum(d => Array.isArray(d.values) ? d3.sum(d.values) : 0)
+                .sort((a, b) => b.value - a.value));
+
+             
         })
 
         
