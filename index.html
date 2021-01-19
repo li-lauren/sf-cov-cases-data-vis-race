@@ -20,49 +20,30 @@
             .padding(d => d.height === 1 ? 1 : 0)
             .round(true);
 
-        // const caseData = d3.csvParse('test_mo_cases_by_race.csv', 
-        //     (d, i) => i === 0 ? null : ({name: d["Race"], values: keys.map(key => +d[key])}));
-
-        // const categories = d3.csvParse('Race-Cats.csv');
-
-        // const catByRace = new Map(categories.map(d => [d.Race, d.Group1]));
-
-        // const keys = d3.range(3, 13, 1)
-        // const data = {keys, group: d3.group(caseData, d => catByRace.get(d.name))};
-
-        // console.log(data)
-
         const keys = d3.range(3, 13, 1)
-
-        // Promise.all([d3.csvParse('test_mo_cases_by_race.csv', (d, i) => i === 0 ? null : ({name: d["Race"], values: keys.map(key => +d[key])})), d3.csvParse('Race-Cats.csv')])
-        // .then(function(overallData) {
-        //     let caseData = overallData[0];
-        //     let categories = overallData[1];
-        //     console.log(caseData)
-        //     const catByRace = new Map(categories.map(d => [d.Race, d.Group1]));
-
-        //     const data = {keys, group: d3.group(caseData, d => catByRace.get(d.name))};
-
-        //     console.log(data)
             
-        // })
+        d3.csv('test_mo_cases_by_race.csv')
+            .then(function(data) {
+                let caseData = []
+                for (row in data) {
+                    caseData.push({
+                        name: data[row]["Race"], 
+                        values: keys.map(key => +data[key]) 
+                    })
+                }
 
-        const caseData = d3.csv('test_mo_cases_by_race.csv', (d, i) => i === 0 ? null : ({name: d["Race"], values: keys.map(key => +d[key])}))
-        console.log(caseData)
-
-        // const [caseData, categories] = await Promise.all([d3.csvParse('test_mo_cases_by_race.csv', (d, i) => i === 0 ? null : ({name: d["Race"], values: keys.map(key => +d[key])})), d3.csvParse('Race-Cats.csv')])
-        // .then(function(overallData) {
-        //     let caseData = overallData[0];
-        //     let categories = overallData[1];
-        //     console.log(caseData)
-        //     const catByRace = new Map(categories.map(d => [d.Race, d.Group1]));
-
-        //     const data = {keys, group: d3.group(caseData, d => catByRace.get(d.name))};
-
-        //     console.log(data)
+                caseData = caseData.splice(0, caseData.length - 1)
             
-        // })
-        
+                d3.csv('Race-Cats.csv')
+                .then(function(categories) {
+                    console.log(categories)
+                    const catByRace = new Map(categories.map(d => [d.Race, d.Group1]));
+
+                    const data = {keys, group: d3.group(caseData, d => catByRace.get(d.name))};
+                })
+
+            })
+            
     </script>
 </body>
 </html>
