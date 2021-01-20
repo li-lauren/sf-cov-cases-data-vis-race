@@ -10,9 +10,30 @@
 <body>
     <svg id="tree-map"></svg>
     
+    <div id="slide-container">
+        <input id="slide" type="range" min="1" max="11" value="0" step="1">
+        <div class="sliderticks">
+            <p>March</p>
+            <p>April</p>
+            <p>May</p>
+            <p>June</p>
+            <p>July</p>
+            <p>August</p>
+            <p>September</p>
+            <p>October</p>
+            <p>November</p>
+            <p>December</p>
+        </div>
+    </div>
+
     <script>
+        // Define variables for time slider
+        let timeOpts = ["March","April","May","June", "July", "August", "September", "October", "November", "December"];
+        let index = null;
+
         const width = 900;
         const height = 900;
+        const duration = 2500;
 
         const svg = d3.select('#tree-map')
             .attr("viewBox", `0 -20 ${width} ${height + 20}`)
@@ -26,9 +47,10 @@
             .padding(d => d.height === 1 ? 1 : 0)
             .round(true);
 
-        const keys = d3.range(3, 13, 1)
+        // const keys = d3.range(3, 13, 1)
+        const keys = ["March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
             
-        Promise.all([d3.csv('test_mo_cases_by_race.csv'), d3.csv('Race-Cats.csv')])
+        Promise.all([d3.csv('data/monthly_cases_by_race.csv'), d3.csv('Race-Cats.csv')])
         .then(function(overallData) {
             const origCaseData = overallData[0]
             const categories = overallData[1]
@@ -42,20 +64,117 @@
             }
 
             caseData = caseData.splice(0, caseData.length - 1)
-
+            console.log(caseData)
             const catByRace = new Map(categories.map(d => [d.Race, d.Group1]));
 
             const data = {keys, group: d3.group(caseData, d => catByRace.get(d.name))};
+            console.log(data)
+            const sums = data.keys.map((d, i) => d3.hierarchy(data.group).sum(d => d.values[i]).value);
+            console.log(sums)
+            const max = d3.max(sums)
+            const color = d3.scaleOrdinal(data.group.keys(), d3.schemeCategory10.map(d => d3.interpolateRgb(d, "white")(0.5)))
 
             const root = treemap(d3.hierarchy(data.group)
                 .sum(d => Array.isArray(d.values) ? d3.sum(d.values) : 0)
                 .sort((a, b) => b.value - a.value));
 
-             
-        })
+            const box = svg.append("g")
+                .selectAll("g")
+                .data(data.keys.map((key, i) => {
+                    console.log(root)
+                    const value = root.sum(d => d.values[i]).value;
+                    // console.log(value)
+                    // console.log({key, value, i, k: Math.sqrt(value / max)})
+                    return {key, value, i, k: Math.sqrt(value / max)};
+                }).reverse())
+                .join("g")
+                .attr("transform", ({k}) => `translate(${(1 - k) / 2 * width},${(1 - k) / 2 * height})`)
+                // .attr("opacity", ({i}) => i >= viewof index.value ? 1 : 0)
+                .attr("opacity", 1)
+                .call(g => g.append("text")
+                    .attr("y", -6)
+                    .attr("fill", "#777")
+                    .selectAll("tspan")
+                    .data(({key, value}) => [key, ` ${value}`])
+                    .join("tspan")
+                    .attr("font-weight", (d, i) => i === 0 ? "bold" : null)
+                    .text(d => d))
+                .call(g => g.append("rect")
+                    .attr("fill", "none")
+                    .attr("stroke", "#ccc")
+                    .attr("width", ({k}) => k * width)
+                    .attr("height", ({k}) => k * height));
+                    })
 
-        
             
+            // const leaf = svg.append("g")
+            //     .selectAll("g")
+            //     // .data(layout(viewof index.value))
+            //     .data(layout(index))
+            //     .join("g")
+            //     .attr("transform", d => `translate(${d.x0},${d.y0})`);
+
+            // leaf.append("rect")
+            //     .attr("id", d => (d.leafUid = DOM.uid("leaf")).id)
+            //     .attr("fill", d => { while (d.depth > 1) d = d.parent; return color(d.data[0]); })
+            //     .attr("width", d => d.x1 - d.x0)
+            //     .attr("height", d => d.y1 - d.y0);
+
+            // leaf.append("clipPath")
+            //     .attr("id", d => (d.clipUid = DOM.uid("clip")).id)
+            //     .append("use")
+            //     .attr("xlink:href", d => d.leafUid.href);
+
+            // leaf.append("text")
+            //     .attr("clip-path", d => d.clipUid)
+            //     .selectAll("tspan")
+            //     .data(d => [d.data.name, formatNumber(d.value)])
+            //     .join("tspan")
+            //     .attr("x", 3)
+            //     .attr("y", (d, i, nodes) => `${(i === nodes.length - 1) * 0.3 + 1.1 + i * 0.9}em`)
+            //     .attr("fill-opacity", (d, i, nodes) => i === nodes.length - 1 ? 0.7 : null)
+            //     .text(d => d);
+
+            // leaf.append("title")
+            //     .text(d => d.data.name);
+            
+            // const layout = (index) => {
+            //     const k = Math.sqrt(root.sum(d => d.values[index]).value / max);
+            //     const x = (1 - k) / 2 * width;
+            //     const y = (1 - k) / 2 * height;
+            //     return treemap.size([width * k, height * k])(root)
+            //     .each(d => (d.x0 += x, d.x1 += x, d.y0 += y, d.y1 += y))
+            //     .leaves();
+            // }
+
+            d3.select("#slide").on("mouseup", function() {
+                index = this.value
+            })
+
+
+            // Object.assign(svg.node(), {
+            //     update(index) {
+            //     box.transition()
+            //         .duration(duration)
+            //         .attr("opacity", ({i}) => i >= index ? 1 : 0);
+
+            //     leaf.data(layout(index)).transition()
+            //         .duration(duration)
+            //         .ease(d3.easeLinear)
+            //         .attr("transform", d => `translate(${d.x0},${d.y0})`)
+            //         .call(leaf => leaf.select("rect")
+            //             .attr("width", d => d.x1 - d.x0)
+            //             .attr("height", d => d.y1 - d.y0))
+            //         .call(leaf => leaf.select("text tspan:last-child")
+            //             .tween("text", function(d) {
+            //                 const i = d3.interpolate(parseNumber(this.textContent), d.value);
+            //                 return function(t) { this.textContent = formatNumber(i(t)); };
+            //             }));
+            //     }
+//   });
+
+        const formatNumber = d3.format(",d");
+        const parseNumber = string => +string.replace(/,/g, "");
     </script>
 </body>
 </html>
