@@ -6,4 +6,27 @@
 
 body {
     font-family: sans-serif;
+    padding: 0px 10px;
+}
+
+#heading {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+#subtitle {
+    margin-top: -20px;
+    font-style: italic;
+    border-bottom: 1px solid black;
+    width: 60%;
+}
+
+#clarification-note {
+    font-size: 12px;
+    margin-top: -5px;
+}
+
+#source {
+    font-style: italic;
+    font-size: 14px;
 }
