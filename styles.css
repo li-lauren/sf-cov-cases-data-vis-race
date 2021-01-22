@@ -4,6 +4,10 @@
     margin: 10px;
 }
 
+svg {
+    font-size: 12px;
+}
+
 body {
     font-family: sans-serif;
     padding: 0px 10px;
